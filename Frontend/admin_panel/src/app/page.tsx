@@ -1,5 +1,5 @@
 
-export default function Home() {
+const Home=()=>{
   return (
     <div className="space-y-2">
       <h1 className="text-2xl font-semibold tracking-tight">Dashboard</h1>
@@ -7,3 +7,5 @@ export default function Home() {
     </div>
   );
 }
+
+export default Home;

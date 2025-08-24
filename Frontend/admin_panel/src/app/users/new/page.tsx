@@ -4,7 +4,7 @@ import { UserForm } from "@/components/user-form";
 import {toast} from "react-toastify";
 import { useRouter } from "next/navigation";
 
-export default function NewUserPage() {
+const NewUserPage=()=>{
     const router = useRouter();
 
     const handleCreate = (data: any) => {
@@ -28,3 +28,5 @@ export default function NewUserPage() {
         </div>
     )
 }
+
+export default NewUserPage;
