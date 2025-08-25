@@ -11,7 +11,7 @@ var validate = validator.New(validator.WithRequiredStructEnabled())
 
 type Service interface {
 	Create(ctx context.Context, req *CreateUserRequest) (*User, error)
-	GetByID(ctx context.Context, id primitive.ObjectID) (*User, error)
+	Get(ctx context.Context, id primitive.ObjectID) (*User, error)
 	Update(ctx context.Context, id primitive.ObjectID, req *UpdateUserRequest) (*User, error)
 	Delete(ctx context.Context, id primitive.ObjectID) error
 	List(ctx context.Context, page, pageSize int) ([]User, int64, error)
@@ -21,8 +21,8 @@ type service struct {
 	repo Repository
 }
 
-func NewService(repo Repository) Service {
-	return &service{repo: repo}
+func NewService(r Repository) Service {
+	return &service{repo: r}
 }
 
 func (s *service) Create(ctx context.Context, req *CreateUserRequest) (*User, error) {
@@ -45,7 +45,7 @@ func (s *service) Create(ctx context.Context, req *CreateUserRequest) (*User, er
 	return user, nil
 }
 
-func (s *service) GetByID(ctx context.Context, id primitive.ObjectID) (*User, error) {
+func (s *service) Get(ctx context.Context, id primitive.ObjectID) (*User, error) {
 	return s.repo.GetByID(ctx, id)
 }
 
