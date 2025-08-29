@@ -2,21 +2,19 @@ package user
 
 import (
 	context "context"
-	"errors"
 
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type Repository interface {
-	Create(ctx context.Context, user *User) error
-	GetByID(ctx context.Context, id primitive.ObjectID) (*User, error)
-	Update(ctx context.Context, user *User) (*User, error)
-	Delete(ctx context.Context, id primitive.ObjectID) error
-	List(ctx context.Context, page, pageSize int) ([]User, int64, error)
 	EnsureIndexes(ctx context.Context) error
+	Create(ctx context.Context, user *User) error
+	GetByUserId(ctx context.Context, userId int64) (*User, error)
+	UpdateByUserId(ctx context.Context, user *User) error
+	DeleteByUserId(ctx context.Context, userId int64) error
+	List(ctx context.Context, page, pageSize int) ([]User, int64, error)
 }
 
 type mongoRepository struct {
@@ -30,6 +28,7 @@ func NewRepository(db *mongo.Database) Repository {
 func (r *mongoRepository) EnsureIndexes(ctx context.Context) error {
 	indexModel := []mongo.IndexModel{
 		{Keys: bson.D{{Key: "email", Value: 1}}, Options: options.Index().SetUnique(true)},
+		{Keys: bson.D{{Key: "userId", Value: 1}}, Options: options.Index().SetUnique(true)},
 		{Keys: bson.D{{Key: "role", Value: 1}}},
 	}
 	_, err := r.collection.Indexes().CreateMany(ctx, indexModel)
@@ -37,38 +36,39 @@ func (r *mongoRepository) EnsureIndexes(ctx context.Context) error {
 }
 
 func (r *mongoRepository) Create(ctx context.Context, user *User) error {
-	res, err := r.collection.InsertOne(ctx, user)
-	if err != nil {
-		return err
-	}
-	if oid, ok := res.InsertedID.(primitive.ObjectID); ok {
-		user.ID = oid
-	}
-	return nil
+	_, err := r.collection.InsertOne(ctx, user)
+	// if err != nil {
+	// 	return err
+	// }
+	// if oid, ok := res.InsertedID.(primitive.ObjectID); ok {
+	// 	user.ID = oid
+	// }
+	return err
 }
 
-func (r *mongoRepository) GetByID(ctx context.Context, id primitive.ObjectID) (*User, error) {
+func (r *mongoRepository) GetByUserId(ctx context.Context, userId int64) (*User, error) {
 	var user User
-	err := r.collection.FindOne(ctx, bson.M{"_id": id}).Decode(&user)
-	if errors.Is(err, mongo.ErrNoDocuments) {
+	if err := r.collection.FindOne(ctx, bson.M{"userId": userId}).Decode(&user); err != nil {
 		return nil, err
 	}
-	return &user, err
+	return &user, nil
 }
 
-func (r *mongoRepository) Update(ctx context.Context, user *User) (*User, error) {
-	_, err := r.collection.UpdateByID(ctx, user.ID, bson.M{"$set": bson.M{
-		"firstName": user.FirstName,
-		"lastName":  user.LastName,
-		"email":     user.Email,
-		"role":      user.Role,
-		"isActive":  user.IsActive,
-	}})
-	return user, err
+func (r *mongoRepository) UpdateByUserId(ctx context.Context, user *User) error {
+	_, err := r.collection.UpdateOne(ctx,
+		bson.M{"userId": user.UserID},
+		bson.M{"$set": bson.M{
+			"firstName": user.FirstName,
+			"lastName":  user.LastName,
+			"email":     user.Email,
+			"role":      user.Role,
+			"isActive":  user.IsActive,
+		}})
+	return err
 }
 
-func (r *mongoRepository) Delete(ctx context.Context, id primitive.ObjectID) error {
-	_, err := r.collection.DeleteOne(ctx, bson.M{"_id": id})
+func (r *mongoRepository) DeleteByUserId(ctx context.Context, userId int64) error {
+	_, err := r.collection.DeleteOne(ctx, bson.M{"userId": userId})
 	return err
 }
 
@@ -82,7 +82,7 @@ func (r *mongoRepository) List(ctx context.Context, page, pageSize int) ([]User,
 	}
 
 	findOptions := options.Find().
-		SetSort(bson.D{{Key: "_id", Value: -1}}).
+		SetSort(bson.D{{Key: "userId", Value: -1}}).
 		SetLimit(int64(pageSize)).
 		SetSkip(int64((page - 1) * pageSize))
 
@@ -97,10 +97,10 @@ func (r *mongoRepository) List(ctx context.Context, page, pageSize int) ([]User,
 		return nil, 0, err
 	}
 
-	count, err := r.collection.CountDocuments(ctx, bson.M{})
+	total, err := r.collection.CountDocuments(ctx, bson.M{})
 	if err != nil {
 		return nil, 0, err
 	}
 
-	return users, count, nil
+	return users, total, nil
 }

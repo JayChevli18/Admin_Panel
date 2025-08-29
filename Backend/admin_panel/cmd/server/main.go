@@ -24,7 +24,7 @@ func main() {
 	defer logr.Sync()
 
 	//Mongo
-	mc, err := pmongo.New(cfg.MongoURI, cfg.MongoDB, logr)
+	mc, err := pmongo.NewMongoClient(cfg.MongoURI, cfg.MongoDB, logr)
 	if err != nil {
 		log.Fatalf("mongo connect: %v", err)
 	}

@@ -5,7 +5,6 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 
 	"Backend/admin_panel/internal/domain/user"
 )
@@ -16,7 +15,7 @@ func NewUserHandler(service user.Service) *UserHandler { return &UserHandler{ser
 
 func toResponse(user *user.User) gin.H {
 	return gin.H{
-		"id":        user.ID.Hex(),
+		"userId":    user.UserID,
 		"firstName": user.FirstName,
 		"lastName":  user.LastName,
 		"email":     user.Email,
@@ -43,9 +42,10 @@ func (h *UserHandler) Create(c *gin.Context) {
 
 // GET /api/v1/users/:id
 func (h *UserHandler) Get(c *gin.Context) {
-	id, err := primitive.ObjectIDFromHex(c.Param("id"))
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
+	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
+	if err != nil || id <= 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id", "details": err.Error()})
+		return
 	}
 	user, err := h.service.Get(c.Request.Context(), id)
 	if err != nil {
@@ -57,8 +57,8 @@ func (h *UserHandler) Get(c *gin.Context) {
 
 // PUT /api/v1/users/:id
 func (h *UserHandler) Update(c *gin.Context) {
-	id, err := primitive.ObjectIDFromHex(c.Param("id"))
-	if err != nil {
+	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
+	if err != nil || id <= 0 {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid user id", "details": err.Error()})
 		return
 	}
@@ -75,9 +75,10 @@ func (h *UserHandler) Update(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "user updated successfully", "user": toResponse(user)})
 }
 
+// DELETE /api/v1/users/:id
 func (h *UserHandler) Delete(c *gin.Context) {
-	id, err := primitive.ObjectIDFromHex(c.Param("id"))
-	if err != nil {
+	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
+	if err != nil || id <= 0 {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid user id", "details": err.Error()})
 		return
 	}
@@ -96,12 +97,18 @@ func (h *UserHandler) List(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to list users", "details": err.Error()})
 		return
 	}
-	data := make([]gin.H, len(items))
+	data := make([]gin.H, 0, len(items))
 	for _, u := range items {
 		data = append(data, toResponse(&u))
 	}
 	totalPages := (int(total) + size - 1) / size
-	c.JSON(http.StatusOK, gin.H{"data": data, "meta": gin.H{
-		"page": page, "pageSize": size, "totalItems": total, "totalPages": totalPages,
-	}})
+	c.JSON(http.StatusOK, gin.H{
+		"data": data,
+		"meta": gin.H{
+			"page":       page,
+			"pageSize":   size,
+			"totalItems": total,
+			"totalPages": totalPages,
+		},
+	})
 }

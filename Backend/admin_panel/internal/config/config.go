@@ -1,6 +1,11 @@
 package config
 
-import "os"
+import (
+	"log"
+	"os"
+
+	"github.com/joho/godotenv"
+)
 
 type Config struct {
 	AppEnv   string
@@ -9,18 +14,20 @@ type Config struct {
 	MongoDB  string
 }
 
-func getenv(key, defaultValue string) string {
-	if value := os.Getenv(key); value != "" {
-		return value
-	}
-	return defaultValue
+func getenv(key string) string {
+	return os.Getenv(key)
 }
 
 func LoadConfig() *Config {
+	// Load .env file if it exists
+	if err := godotenv.Load(); err != nil {
+		log.Printf("Warning: .env file not found, using system environment variables: %v", err)
+	}
+
 	return &Config{
-		AppEnv:   getenv("APP_ENV", "development"),
-		AppPort:  getenv("APP_PORT", "8080"),
-		MongoURI: getenv("MONGO_URI", "mongodb://localhost:27017"),
-		MongoDB:  getenv("MONGO_DB", "admin_panel"),
+		AppEnv:   getenv("APP_ENV"),
+		AppPort:  getenv("APP_PORT"),
+		MongoURI: getenv("MONGO_URI"),
+		MongoDB:  getenv("MONGO_DB"),
 	}
 }

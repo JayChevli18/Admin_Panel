@@ -1,6 +1,7 @@
 package user
 
 type CreateUserRequest struct {
+	UserID    int64  `json:"userId" validate:"required,min=1"`
 	FirstName string `json:"firstName" validate:"required,min=2,max=50"`
 	LastName  string `json:"lastName" validate:"required,min=2,max=50"`
 	Email     string `json:"email" validate:"required,email,max=100"`

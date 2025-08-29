@@ -4,16 +4,15 @@ import (
 	context "context"
 
 	"github.com/go-playground/validator/v10"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 var validate = validator.New(validator.WithRequiredStructEnabled())
 
 type Service interface {
 	Create(ctx context.Context, req *CreateUserRequest) (*User, error)
-	Get(ctx context.Context, id primitive.ObjectID) (*User, error)
-	Update(ctx context.Context, id primitive.ObjectID, req *UpdateUserRequest) (*User, error)
-	Delete(ctx context.Context, id primitive.ObjectID) error
+	Get(ctx context.Context, userId int64) (*User, error)
+	Update(ctx context.Context, userId int64, req UpdateUserRequest) (*User, error)
+	Delete(ctx context.Context, userId int64) error
 	List(ctx context.Context, page, pageSize int) ([]User, int64, error)
 }
 
@@ -29,8 +28,8 @@ func (s *service) Create(ctx context.Context, req *CreateUserRequest) (*User, er
 	if err := validate.Struct(req); err != nil {
 		return nil, err
 	}
-
 	user := &User{
+		UserID:    req.UserID,
 		FirstName: req.FirstName,
 		LastName:  req.LastName,
 		Email:     req.Email,
@@ -45,16 +44,12 @@ func (s *service) Create(ctx context.Context, req *CreateUserRequest) (*User, er
 	return user, nil
 }
 
-func (s *service) Get(ctx context.Context, id primitive.ObjectID) (*User, error) {
-	return s.repo.GetByID(ctx, id)
-}
-
-func (s *service) Update(ctx context.Context, id primitive.ObjectID, req *UpdateUserRequest) (*User, error) {
+func (s *service) Update(ctx context.Context, userId int64, req UpdateUserRequest) (*User, error) {
 	if err := validate.Struct(req); err != nil {
 		return nil, err
 	}
 
-	user, err := s.repo.GetByID(ctx, id)
+	user, err := s.repo.GetByUserId(ctx, userId)
 	if err != nil {
 		return nil, err
 	}
@@ -75,16 +70,19 @@ func (s *service) Update(ctx context.Context, id primitive.ObjectID, req *Update
 		user.IsActive = *req.IsActive
 	}
 
-	updatedUser, err := s.repo.Update(ctx, user)
-	if err != nil {
+	if err := s.repo.UpdateByUserId(ctx, user); err != nil {
 		return nil, err
 	}
 
-	return updatedUser, nil
+	return user, nil
 }
 
-func (s *service) Delete(ctx context.Context, id primitive.ObjectID) error {
-	return s.repo.Delete(ctx, id)
+func (s *service) Get(ctx context.Context, userId int64) (*User, error) {
+	return s.repo.GetByUserId(ctx, userId)
+}
+
+func (s *service) Delete(ctx context.Context, userId int64) error {
+	return s.repo.DeleteByUserId(ctx, userId)
 }
 
 func (s *service) List(ctx context.Context, page, pageSize int) ([]User, int64, error) {
