@@ -1,0 +1,116 @@
+# Go Backend
+Backend/admin_panel/tmp/
+Backend/admin_panel/tmp
+Backend/admin_panel/*.exe
+Backend/admin_panel/*.exe~
+Backend/admin_panel/*.dll
+Backend/admin_panel/*.so
+Backend/admin_panel/*.dylib
+Backend/admin_panel/*.test
+Backend/admin_panel/*.out
+Backend/admin_panel/go.work
+Backend/admin_panel/build-errors.log
+
+# Environment files
+Backend/admin_panel/.env
+Backend/admin_panel/.env.local
+Backend/admin_panel/.env.*.local
+
+# Next.js Frontend
+Frontend/admin_panel/.next/
+Frontend/admin_panel/out/
+Frontend/admin_panel/build/
+Frontend/admin_panel/dist/
+Frontend/admin_panel/node_modules/
+Frontend/admin_panel/.env.local
+Frontend/admin_panel/.env.development.local
+Frontend/admin_panel/.env.test.local
+Frontend/admin_panel/.env.production.local
+Frontend/admin_panel/npm-debug.log*
+Frontend/admin_panel/yarn-debug.log*
+Frontend/admin_panel/yarn-error.log*
+Frontend/admin_panel/.pnpm-debug.log*
+Frontend/admin_panel/.vercel
+Frontend/admin_panel/*.tsbuildinfo
+Frontend/admin_panel/next-env.d.ts
+
+# IDE and Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage directory used by tools like istanbul
+coverage/
+*.lcov
+
+# nyc test coverage
+.nyc_output
+
+# Dependency directories
+node_modules/
+jspm_packages/
+
+# Optional npm cache directory
+.npm
+
+# Optional eslint cache
+.eslintcache
+
+# Microbundle cache
+.rpt2_cache/
+.rts2_cache_cjs/
+.rts2_cache_es/
+.rts2_cache_umd/
+
+# Optional REPL history
+.node_repl_history
+
+# Output of 'npm pack'
+*.tgz
+
+# Yarn Integrity file
+.yarn-integrity
+
+# parcel-bundler cache (https://parceljs.org/)
+.cache
+.parcel-cache
+
+# Next.js build output
+.next
+
+# Nuxt.js build / generate output
+.nuxt
+dist
+
+# Gatsby files
+.cache/
+public
+
+# Storybook build outputs
+.out
+.storybook-out
+
+# Temporary folders
+tmp/
+temp/
